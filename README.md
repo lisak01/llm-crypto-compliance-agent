@@ -9,9 +9,9 @@ with step details and a side-by-side comparison of two runs.
 
 All data is synthetic. No real customers, wallets or transactions.
 
-![Timeline of a run where the first Gemini call hit a rate limit and the automatic retry succeeded](docs/timeline.png)
+![Timeline of a run where the first Gemini call hit a rate limit and the automatic retry succeeded](docs/timeline-dark.png)
 
-![Two runs of the same scenario: A went to manual review, B stopped because Gemini rejected too many requests](docs/compare.png)
+![Two runs of the same scenario: A went to manual review, B stopped because Gemini rejected too many requests](docs/compare-dark.png)
 
 Screenshots from real runs with Gemini (`gemini-3.5-flash-lite`). The rate-limit errors are real API responses, not simulated.
 
