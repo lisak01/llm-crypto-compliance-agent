@@ -1,0 +1,12 @@
+# Secrets and local settings
+.env
+
+# Raw n8n exports (not anonymized)
+raw_*.json
+
+# OS / Python clutter
+.DS_Store
+__pycache__/
+
+# Backup of the full export incl. old test runs
+traces/traces_all_*.json

@@ -1,0 +1,401 @@
+{
+  "name": "Crypto Withdrawal Compliance Check (LLM)",
+  "nodes": [
+    {
+      "id": "62c84fd5-7734-4f48-bf7b-fca716b702b6",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "3e3359b4-b231-477c-b337-ca3f35068ba3",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crypto-withdrawal",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "49d407f2-5563-4901-a801-634aa2bcd0d1",
+      "name": "Intake Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const sleep = (ms) => new Promise(r => setTimeout(r, ms)); // helper: wait for ms milliseconds\n\n// Intake Agent: checks that the withdrawal request has all required fields.\nconst req = $input.first().json.body || {};  // the webhook puts the posted JSON into \"body\"\nawait sleep(200 + Math.random() * 300);  // simulate 200-500 ms processing time\nconst required = ['request_id', 'customer_id', 'asset', 'amount', 'amount_eur',  // fields that must exist\n                  'destination_address', 'wallet_type'];  // (continued)\nconst missing = required.filter(f => req[f] === undefined || req[f] === null || req[f] === '');  // find empty fields\nif (missing.length) {  // at least one field is missing\n  throw new Error(`Invalid request: missing field(s) ${missing.join(', ')}`);  // stop the run with an error\n}\nreturn [{ json: { ...req, received_at: new Date().toISOString() } }];  // pass the request on, plus a timestamp\n"
+      }
+    },
+    {
+      "id": "6b77f09e-6e36-4176-b68a-c3184bd2ca2a",
+      "name": "Wallet Screening Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const sleep = (ms) => new Promise(r => setTimeout(r, ms)); // helper: wait for ms milliseconds\n\n// Wallet Screening Agent: checks the target wallet against a small demo risk list.\nconst tx = $input.first().json;  // the request from the previous step\nconst RISK_LIST = {  // demo list: wallet address -> risk category\n  '0x7f3a000000000000000000000000000000mix001': 'mixer',  // wallet linked to a mixer\n  '0x9b1c00000000000000000000000000000sanc001': 'sanctioned',  // sanctioned wallet\n};\nawait sleep(600 + Math.random() * 900);  // simulate 600-1500 ms (e.g. calling a screening service)\nconst category = RISK_LIST[tx.destination_address] || 'clean';  // unknown wallets count as \"clean\"\nreturn [{ json: { ...tx, screening: { category, source: 'internal-demo-list' } } }];  // add the result\n"
+      }
+    },
+    {
+      "id": "0950f206-7f42-4072-81b0-3fbcc6df4e25",
+      "name": "Travel Rule Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const sleep = (ms) => new Promise(r => setTimeout(r, ms)); // helper: wait for ms milliseconds\n\n// Travel Rule Agent: sender and receiver data must be complete (EU Travel Rule).\nconst tx = $input.first().json;  // the request from the previous step\nawait sleep(300 + Math.random() * 500);  // simulate 300-800 ms processing time\nconst tr = tx.travel_rule || {};  // travel rule data (empty object if missing)\nconst missing = ['originator_name', 'originator_account', 'beneficiary_name'].filter(f => !tr[f]);  // find gaps\nif (tx.wallet_type === 'exchange' && !tr.beneficiary_vasp) missing.push('beneficiary_vasp');  // exchange needs provider name\nif (missing.length) {  // some data is missing\n  throw new Error(`Travel Rule data incomplete: ${missing.join(', ')}`);  // stop the run with an error\n}\nconst needsOwnershipCheck = tx.wallet_type === 'self_hosted' && tx.amount_eur > 1000;  // private wallet over 1000 EUR?\nreturn [{ json: { ...tx, travel_rule_ok: true, needs_ownership_check: needsOwnershipCheck } }];  // pass on result\n"
+      }
+    },
+    {
+      "id": "51024740-e7e7-4848-928b-9a57a6d51f67",
+      "name": "Ownership Check Needed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        880,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.needs_ownership_check }}",
+              "value2": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "8d0eac0a-428c-4cef-9438-8edfffdad95f",
+      "name": "Ownership Verification Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        160
+      ],
+      "parameters": {
+        "jsCode": "const sleep = (ms) => new Promise(r => setTimeout(r, ms)); // helper: wait for ms milliseconds\n\n// Ownership Verification Agent: the customer proves that the private wallet belongs to them.\n// Simulated as a \"signed message\" check, which takes longer than other steps.\nconst tx = $input.first().json;  // the request from the previous step\nawait sleep(2000 + Math.random() * 2000);  // simulate 2-4 seconds (customer has to sign a message)\nreturn [{ json: { ...tx, ownership_verified: true, ownership_method: 'signed_message' } }];  // mark as verified\n"
+      }
+    },
+    {
+      "id": "6be43a05-97be-4f16-b517-e190a163f1d5",
+      "name": "Risk Scoring Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1320,
+        300
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Withdrawal request:\n{{ JSON.stringify({ asset: $json.asset, amount_eur: $json.amount_eur, wallet_type: $json.wallet_type, screening_result: $json.screening.category, customer_tenure_days: $json.customer_tenure_days, ownership_verified: $json.ownership_verified || false }, null, 2) }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "You are a crypto compliance risk analyst at a bank. Score the risk of the withdrawal from 0 (no risk) to 100 (must be blocked). Guidelines: sanctioned destination = 100. Mixer exposure adds about 60. Amount over 10,000 EUR adds about 35, over 1,000 EUR about 10. Self-hosted wallet adds about 10. Customer younger than 30 days adds about 20. Answer ONLY with JSON, no other text: {\"risk_score\": <integer>, \"reasons\": [\"short reason\", ...]}"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "7286aa5b-38a4-4f14-9db9-8c2ac26e6b46",
+      "name": "Decision Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        300
+      ],
+      "parameters": {
+        "jsCode": "const sleep = (ms) => new Promise(r => setTimeout(r, ms)); // helper: wait for ms milliseconds\n\n// Decision Agent: reads the LLM risk score and decides between approve, review and reject.\n// The AI Agent node only returns { output: \"<LLM text>\" }, so the request data is\n// taken again from earlier nodes with $('Node name').\nconst tx = $('Travel Rule Agent').first().json;  // request data (Travel Rule Agent always runs before)\nlet ownership = {};  // result of the optional ownership step\ntry {  // the ownership step only runs for private wallets over 1000 EUR\n  ownership = $('Ownership Verification Agent').first().json;  // take its output if it ran\n} catch (e) {  // node did not run in this execution\n  ownership = {};  // keep it empty\n}\nconst raw = String($input.first().json.output ?? '');  // LLM answer as text\nawait sleep(150 + Math.random() * 250);  // simulate 150-400 ms processing time\nconst match = raw.match(/\\{[\\s\\S]*\\}/);  // find the JSON part (LLMs sometimes add text around it)\nlet llm;  // parsed LLM answer\ntry {\n  llm = JSON.parse(match[0]);  // parse the JSON\n} catch (e) {  // no JSON or invalid JSON\n  throw new Error(`LLM returned invalid JSON: ${raw.slice(0, 120)}`);  // stop the run with an error\n}\nconst score = Math.max(0, Math.min(100, Math.round(Number(llm.risk_score))));  // clean score 0-100\nif (Number.isNaN(score)) throw new Error('LLM risk_score is not a number');  // safety check\nlet decision = 'approve';  // default: approve the withdrawal\nif (tx.screening?.category === 'sanctioned') decision = 'reject';  // hard rule: sanctioned is always rejected\nelse if (score >= 50) decision = 'review';  // high LLM score goes to a human\nreturn [{ json: {  // pass on the request with risk and decision\n  ...tx,  // original request data\n  ownership_verified: ownership.ownership_verified || false,  // result of the ownership step\n  risk: { score, reasons: llm.reasons || [], source: 'llm' },  // LLM result\n  decision,  // final decision\n} }];\n"
+      }
+    },
+    {
+      "id": "8d207a35-a03a-4215-b208-29e883c04658",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1820,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.decision }}",
+              "value2": "approve"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "3717d9cc-3dfc-4815-a116-298a5b2cc7a8",
+      "name": "Blockchain Broadcast Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2040,
+        160
+      ],
+      "parameters": {
+        "jsCode": "const sleep = (ms) => new Promise(r => setTimeout(r, ms)); // helper: wait for ms milliseconds\n\n// Blockchain Broadcast Agent: sends the transaction to the blockchain (simulated).\nconst tx = $input.first().json;  // the request from the previous step\nconst sim = tx.simulation || {};  // test flags from the data generator\nconst base = { BTC: 1500, ETH: 800, USDC: 600 }[tx.asset] || 1000;  // normal wait time per coin in ms\nlet delay = base + Math.random() * 700;  // add some random variation\nif (sim.network_congestion) delay += 6000 + Math.random() * 3000;  // overloaded network: 6-9 s extra\nawait sleep(delay);  // wait for the simulated confirmation\nif (sim.broadcast_failure) {  // test case: sending fails\n  throw new Error('Broadcast failed: node timeout during network congestion');  // stop the run with an error\n}\nconst hex = [...Array(64)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');  // fake tx hash\nreturn [{ json: { ...tx, tx_hash: '0x' + hex, broadcast_status: 'confirmed' } }];  // mark as sent\n"
+      }
+    },
+    {
+      "id": "0ba9bbe9-00f7-4153-9b77-5091417248d2",
+      "name": "Rejected?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        440
+      ],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.decision }}",
+              "value2": "reject"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "f5f4f5d1-8ee4-4bdb-9b61-571f03855e79",
+      "name": "Rejection Notice Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2300,
+        340
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Withdrawal: {{ $json.amount }} {{ $json.asset }} (request {{ $json.request_id }})",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "You write short, polite messages from a bank to its customers. Write max. 3 sentences telling the customer that the crypto withdrawal was rejected for compliance reasons. Do not mention internal lists, scores or investigations."
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "a7cfe743-055e-4557-a735-800fb2f54691",
+      "name": "Manual Review Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2300,
+        560
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Case data:\n{{ JSON.stringify({ request_id: $json.request_id, asset: $json.asset, amount_eur: $json.amount_eur, wallet_type: $json.wallet_type, screening_result: $json.screening.category, risk: $json.risk }, null, 2) }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "You are an assistant for compliance analysts at a bank. Write a short case summary (max. 4 sentences) for the analyst who reviews this crypto withdrawal. Mention the main risk factors and what the analyst should check first."
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "fad333b0-bddc-484a-b61f-ae2ba4059453",
+      "name": "Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1800,
+        760
+      ],
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {
+          "temperature": 0
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Intake Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intake Agent": {
+      "main": [
+        [
+          {
+            "node": "Wallet Screening Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wallet Screening Agent": {
+      "main": [
+        [
+          {
+            "node": "Travel Rule Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Travel Rule Agent": {
+      "main": [
+        [
+          {
+            "node": "Ownership Check Needed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ownership Check Needed?": {
+      "main": [
+        [
+          {
+            "node": "Ownership Verification Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Risk Scoring Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ownership Verification Agent": {
+      "main": [
+        [
+          {
+            "node": "Risk Scoring Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Risk Scoring Agent": {
+      "main": [
+        [
+          {
+            "node": "Decision Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decision Agent": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Blockchain Broadcast Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rejected?": {
+      "main": [
+        [
+          {
+            "node": "Rejection Notice Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Manual Review Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Risk Scoring Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Manual Review Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Rejection Notice Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveExecutionProgress": true
+  },
+  "pinData": {}
+}

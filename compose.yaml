@@ -1,0 +1,36 @@
+# File: compose.yaml
+# Purpose: starts the two services of the project with "docker compose up -d --build":
+#   1. n8n        - runs the multi-agent workflow and stores executions
+#   2. trace-app  - serves the visualization web app and the trace JSON
+
+services:  # list of containers
+  n8n:  # service 1: the workflow engine
+    image: docker.n8n.io/n8nio/n8n:latest  # official n8n Community Edition image
+    restart: unless-stopped  # restart automatically unless stopped by hand
+    ports:  # make the container reachable from the host
+      - "5678:5678"  # n8n editor and webhooks on http://localhost:5678
+    env_file: .env  # load settings from .env (copy of .env.example)
+    environment:  # settings needed to keep full execution data for the traces
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=all  # save data of successful runs
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all  # save data of failed runs
+      - EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS=true  # save runs started in the editor
+      - EXECUTIONS_DATA_SAVE_ON_PROGRESS=true  # save data after every node
+      - EXECUTIONS_DATA_PRUNE=false  # never delete old runs automatically
+      - N8N_SECURE_COOKIE=false  # allow login over plain http on localhost
+    volumes:  # folders shared with the container
+      - n8n_data:/home/node/.n8n  # persistent storage (SQLite database, settings)
+      - ./n8n:/workflows:ro  # workflow file, read-only, for the import command
+
+  trace-app:  # service 2: the visualization
+    image: nginx:alpine  # small web server for static files
+    restart: unless-stopped  # restart automatically unless stopped by hand
+    ports:  # make the container reachable from the host
+      - "8080:80"  # web app on http://localhost:8080
+    volumes:  # folders shared with the container
+      - ./trace-app:/usr/share/nginx/html:ro  # the web app files
+      - ./traces:/usr/share/nginx/html/traces:ro  # the exported trace JSON
+    depends_on:  # start order
+      - n8n  # start n8n first
+
+volumes:  # named volumes managed by Docker
+  n8n_data:  # keeps n8n data after container restarts

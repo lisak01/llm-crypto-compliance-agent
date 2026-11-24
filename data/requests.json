@@ -1,0 +1,325 @@
+[
+  {
+    "request_id": "WD-016",
+    "scenario": "broadcast_failure",
+    "customer_id": "CUST-8668",
+    "customer_tenure_days": 1123,
+    "asset": "BTC",
+    "amount": 0.006469,
+    "amount_eur": 517.49,
+    "destination_address": "bc1qbea87f75d0575939bab989ddb181f524b0e4b7",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Robin Demo",
+      "originator_account": "ACC-363626",
+      "beneficiary_name": "Noa Sample",
+      "beneficiary_vasp": "DemoExchange AG"
+    },
+    "simulation": {
+      "network_congestion": true,
+      "broadcast_failure": true
+    }
+  },
+  {
+    "request_id": "WD-005",
+    "scenario": "normal_exchange",
+    "customer_id": "CUST-6881",
+    "customer_tenure_days": 1775,
+    "asset": "ETH",
+    "amount": 0.045626,
+    "amount_eur": 136.88,
+    "destination_address": "0xf2ad9c81bb98b54f01c31bd91facc8443d85cedc",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Robin Muster",
+      "originator_account": "ACC-460663",
+      "beneficiary_name": "Noa Sample",
+      "beneficiary_vasp": "SampleCoin GmbH"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-002",
+    "scenario": "normal_exchange",
+    "customer_id": "CUST-7912",
+    "customer_tenure_days": 105,
+    "asset": "USDC",
+    "amount": 755.075092,
+    "amount_eur": 679.57,
+    "destination_address": "0xe1b2be56ecbbe6ee89f474b7409850da16804258",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Kim Muster",
+      "originator_account": "ACC-131244",
+      "beneficiary_name": "Lee Sample",
+      "beneficiary_vasp": "DemoExchange AG"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-012",
+    "scenario": "sanctioned_wallet",
+    "customer_id": "CUST-6155",
+    "customer_tenure_days": 475,
+    "asset": "USDC",
+    "amount": 3559.438179,
+    "amount_eur": 3203.49,
+    "destination_address": "0x9b1c00000000000000000000000000000sanc001",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Alex Beispiel",
+      "originator_account": "ACC-787277",
+      "beneficiary_name": "Max Sample",
+      "beneficiary_vasp": "SampleCoin GmbH"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-008",
+    "scenario": "self_hosted_large",
+    "customer_id": "CUST-5554",
+    "customer_tenure_days": 968,
+    "asset": "BTC",
+    "amount": 0.088245,
+    "amount_eur": 7059.57,
+    "destination_address": "bc1q3fecb133864668117c8144de4811dc6d2b3267",
+    "wallet_type": "self_hosted",
+    "travel_rule": {
+      "originator_name": "Alex Demo",
+      "originator_account": "ACC-766563",
+      "beneficiary_name": "Max Sample"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-018",
+    "scenario": "new_customer_high_amount",
+    "customer_id": "CUST-9201",
+    "customer_tenure_days": 5,
+    "asset": "BTC",
+    "amount": 0.195372,
+    "amount_eur": 15629.79,
+    "destination_address": "bc1q8ee194fb6bc21b1b40dadd6d6c0cb317f0bedb",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Jo Test",
+      "originator_account": "ACC-287330",
+      "beneficiary_name": "Noa Sample",
+      "beneficiary_vasp": "DemoExchange AG"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-004",
+    "scenario": "normal_exchange",
+    "customer_id": "CUST-7924",
+    "customer_tenure_days": 736,
+    "asset": "ETH",
+    "amount": 0.246005,
+    "amount_eur": 738.02,
+    "destination_address": "0xd32544551002cbae6a00b4ebb448e24a7b6847b9",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Alex Beispiel",
+      "originator_account": "ACC-391369",
+      "beneficiary_name": "Lee Sample",
+      "beneficiary_vasp": "DemoExchange AG"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-014",
+    "scenario": "missing_travel_rule",
+    "customer_id": "CUST-7543",
+    "customer_tenure_days": 781,
+    "asset": "BTC",
+    "amount": 0.022148,
+    "amount_eur": 1771.83,
+    "destination_address": "bc1q4c3c766fb9eedd785fa3cab7015bfd25c5fc73",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Chris Demo",
+      "originator_account": "ACC-329974",
+      "beneficiary_vasp": "TestTrade BV"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-001",
+    "scenario": "normal_exchange",
+    "customer_id": "CUST-5012",
+    "customer_tenure_days": 497,
+    "asset": "USDC",
+    "amount": 160.701564,
+    "amount_eur": 144.63,
+    "destination_address": "0xf45a85b835c135d3041ebf9a5b494dee930b0d70",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Jo Test",
+      "originator_account": "ACC-246316",
+      "beneficiary_name": "Noa Sample",
+      "beneficiary_vasp": "DemoExchange AG"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-011",
+    "scenario": "mixer_wallet",
+    "customer_id": "CUST-1916",
+    "customer_tenure_days": 509,
+    "asset": "ETH",
+    "amount": 0.50843,
+    "amount_eur": 1525.29,
+    "destination_address": "0x7f3a000000000000000000000000000000mix001",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Jo Test",
+      "originator_account": "ACC-961722",
+      "beneficiary_name": "Lee Sample",
+      "beneficiary_vasp": "SampleCoin GmbH"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-009",
+    "scenario": "self_hosted_large",
+    "customer_id": "CUST-2169",
+    "customer_tenure_days": 1287,
+    "asset": "BTC",
+    "amount": 0.048827,
+    "amount_eur": 3906.18,
+    "destination_address": "bc1qbf32f9d659f3b605b98c7a520cb9a523ee51a8",
+    "wallet_type": "self_hosted",
+    "travel_rule": {
+      "originator_name": "Sam Test",
+      "originator_account": "ACC-765822",
+      "beneficiary_name": "Lee Sample"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-015",
+    "scenario": "network_congestion",
+    "customer_id": "CUST-3504",
+    "customer_tenure_days": 1325,
+    "asset": "ETH",
+    "amount": 0.148487,
+    "amount_eur": 445.46,
+    "destination_address": "0x5b0c0ab6f0caeb21a3bf7149b5ab9f3cc95b753a",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Alex Muster",
+      "originator_account": "ACC-267753",
+      "beneficiary_name": "Noa Sample",
+      "beneficiary_vasp": "SampleCoin GmbH"
+    },
+    "simulation": {
+      "network_congestion": true
+    }
+  },
+  {
+    "request_id": "WD-013",
+    "scenario": "missing_travel_rule",
+    "customer_id": "CUST-3340",
+    "customer_tenure_days": 582,
+    "asset": "BTC",
+    "amount": 0.033464,
+    "amount_eur": 2677.11,
+    "destination_address": "bc1q114b4651f25ca599676a15d4df523130285e12",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Jo Demo",
+      "originator_account": "ACC-246413",
+      "beneficiary_vasp": "TestTrade BV"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-006",
+    "scenario": "normal_exchange",
+    "customer_id": "CUST-7201",
+    "customer_tenure_days": 201,
+    "asset": "BTC",
+    "amount": 0.008378,
+    "amount_eur": 670.27,
+    "destination_address": "bc1q4b0badefdb20c96b434d4d29d15445aba3e8cb",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Kim Muster",
+      "originator_account": "ACC-678856",
+      "beneficiary_name": "Max Sample",
+      "beneficiary_vasp": "TestTrade BV"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-003",
+    "scenario": "normal_exchange",
+    "customer_id": "CUST-9928",
+    "customer_tenure_days": 899,
+    "asset": "BTC",
+    "amount": 0.005994,
+    "amount_eur": 479.55,
+    "destination_address": "bc1qa72c12972ea61d0c181c34346514788b6a760c",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Alex Beispiel",
+      "originator_account": "ACC-331148",
+      "beneficiary_name": "Max Sample",
+      "beneficiary_vasp": "TestTrade BV"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-007",
+    "scenario": "self_hosted_large",
+    "customer_id": "CUST-1750",
+    "customer_tenure_days": 1394,
+    "asset": "ETH",
+    "amount": 1.75093,
+    "amount_eur": 5252.79,
+    "destination_address": "0x7dc944415044baa774018fed22d0262c2f271e0f",
+    "wallet_type": "self_hosted",
+    "travel_rule": {
+      "originator_name": "Jo Muster",
+      "originator_account": "ACC-338968",
+      "beneficiary_name": "Max Sample"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-017",
+    "scenario": "missing_field",
+    "customer_id": "CUST-6573",
+    "customer_tenure_days": 268,
+    "asset": "ETH",
+    "amount": 0.192066,
+    "amount_eur": 576.2,
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Alex Test",
+      "originator_account": "ACC-407757",
+      "beneficiary_name": "Max Sample",
+      "beneficiary_vasp": "DemoExchange AG"
+    },
+    "simulation": {}
+  },
+  {
+    "request_id": "WD-010",
+    "scenario": "mixer_wallet",
+    "customer_id": "CUST-8573",
+    "customer_tenure_days": 817,
+    "asset": "ETH",
+    "amount": 0.491703,
+    "amount_eur": 1475.11,
+    "destination_address": "0x7f3a000000000000000000000000000000mix001",
+    "wallet_type": "exchange",
+    "travel_rule": {
+      "originator_name": "Sam Beispiel",
+      "originator_account": "ACC-383060",
+      "beneficiary_name": "Noa Sample",
+      "beneficiary_vasp": "TestTrade BV"
+    },
+    "simulation": {}
+  }
+]
